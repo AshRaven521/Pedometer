@@ -1,0 +1,18 @@
+﻿<Window x:Class="Pedometer.MainWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:local="clr-namespace:Pedometer" xmlns:viewmodel="clr-namespace:Pedometer.ViewModel" d:DataContext="{d:DesignInstance Type=viewmodel:ApplicationViewModel}"
+        mc:Ignorable="d"
+        Title="Pedometer" Height="450" Width="800">
+    <Grid>
+
+        <Button Height="20" Margin="62,125,634,289"
+                Name="openFileButton" Content="Выбрать файл" 
+                Command="{Binding OpenFileCommand}"  />
+        <TextBox Height="20" Margin="193,125,502,289"
+                 IsReadOnly="True"/>
+
+    </Grid>
+</Window>
