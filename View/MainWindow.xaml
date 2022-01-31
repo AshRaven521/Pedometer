@@ -5,14 +5,17 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:Pedometer" xmlns:viewmodel="clr-namespace:Pedometer.ViewModel" d:DataContext="{d:DesignInstance Type=viewmodel:ApplicationViewModel}"
         mc:Ignorable="d"
-        Title="Pedometer" Height="450" Width="800">
+        Title="Pedometer" Height="300" Width="500" ResizeMode="CanResize" >
     <Grid>
 
-        <Button Height="20" Margin="62,125,634,289"
+        <Button Height="20" Width="110"
                 Name="openFileButton" Content="Выбрать файл" 
-                Command="{Binding OpenFileCommand}"  />
-        <TextBox Height="20" Margin="193,125,502,289"
-                 IsReadOnly="True"/>
+                Command="{Binding OpenFileCommand}" Margin="10,34,380,230"   />
+        <Button Height="20" Width="110"
+            x:Name="printDataButton" Content="Вывести данные" 
+            Command="{Binding PrintDataCommand}" Margin="10,72,380,192"   />
+        <!--<TextBox Height="20" Margin="193,125,502,289"
+                 IsReadOnly="True" Text="{Binding Path=FileName}"/>-->
 
     </Grid>
 </Window>

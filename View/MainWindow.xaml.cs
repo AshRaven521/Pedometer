@@ -14,6 +14,7 @@ using System.Windows.Media.Imaging;
 using System.Windows.Navigation;
 using System.Windows.Shapes;
 using Pedometer.ViewModel;
+using Pedometer.Model;
 
 namespace Pedometer
 {
@@ -25,15 +26,7 @@ namespace Pedometer
         public MainWindow()
         {
             InitializeComponent();
-            DataContext = new ApplicationViewModel();
+            DataContext = new ApplicationViewModel(new JsonFileParsing(), new DefaultDialogService());
         }
-
-       
-
-        /*private void openFileButton_Click_1(object sender, RoutedEventArgs e)
-        {
-            OpenFileDialog openFileDialog = new OpenFileDialog();
-            openFileDialog.ShowDialog();
-        }*/
     }
 }
