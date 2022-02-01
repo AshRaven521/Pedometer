@@ -14,17 +14,16 @@ namespace Pedometer.ViewModel
 {
     public class ApplicationViewModel : INotifyPropertyChanged
     {
-        private Command openFileCommand;
-        private Command printDataCommand;
+        private Command collectDataCommand;
 
         private Person selectedPerson;
 
         private IFileService file;
         private IDialogService dialog;
         
-        private ObservableCollection<User> Users { get; set; }
+        public ObservableCollection<User> Users { get; set; }
 
-        public ObservableCollection<Person> People { get; set; }
+        private ObservableCollection<Person> People { get; set; }
 
         public ApplicationViewModel(IFileService fileService, IDialogService dialogService)
         {
@@ -36,52 +35,38 @@ namespace Pedometer.ViewModel
             Users = new ObservableCollection<User>();
         }
 
-        public Command OpenFileCommand
+        public Command CollectDataCommand
         {
             get
             {
-                if(openFileCommand == null)
+                if(collectDataCommand == null)
                 {
-                    return openFileCommand = new Command(OpenFile);
+                    return collectDataCommand = new Command(PrintData);
                 }
                 else
                 {
-                    return openFileCommand;
+                    return collectDataCommand;
                 }
             }
         }
 
-        public Command PrintDataCommand
-        {
-            get
-            {
-                if(printDataCommand == null)
-                {
-                    return printDataCommand = new Command(PrintData);
-                }
-                else
-                {
-                    return printDataCommand;
-                }
-            }
-        }
 
         private void OpenFile()
         {
 
             try
             {
-                if (dialog.OpenFile() == true)
-                {
-                    var people = file.Open(dialog.FilePath);
+                //Задаем количество дней, по которым будем проводить анализ количества шагов(кол-во считываемых json файлов)
+                var people = file.Open(5);
 
-                    //People.Clear();
-                    foreach(Person person in people)
+                    
+                foreach(List<Person> listOfPerson in people)
+                {
+                    foreach(Person person in listOfPerson)
                     {
                         People.Add(person);
+
                     }
-                   
-                    dialog.ShowMessage("Файл открыт успешно");
                 }
             }
             catch (Exception ex)
@@ -91,22 +76,34 @@ namespace Pedometer.ViewModel
 
         }
 
-        private void PrintData()
+        public List<User> CollectData()
         {
+
+            List<User> users = new List<User>();
+            OpenFile();
+
             foreach (Person p in People)
             {
-                if (!Users.Any(x => x.Name == p.User))
+                if (!users.Any(x => x.Name == p.User))
                 {
                     var user = new User(p.User);
                     user.Steps.Add(new DaySteps(p.Steps));
-                    Users.Add(user);
+                    users.Add(user);
                 }
                 else
                 {
-                    var user = Users.FirstOrDefault(x => x.Name == p.User);
+                    var user = users.FirstOrDefault(x => x.Name == p.User);
                     user.Steps.Add(new DaySteps(p.Steps));
                 }
             }
+
+            return users;
+        }
+
+        private void PrintData()
+        {
+            CollectData();
+            dialog.ShowMessage("Данные успешно собраны!");
         }
 
         public event PropertyChangedEventHandler PropertyChanged;

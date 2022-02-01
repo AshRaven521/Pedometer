@@ -17,7 +17,6 @@ namespace Pedometer.Model
             OpenFileDialog openFileDialog = new OpenFileDialog();
 
             openFileDialog.Filter = "Json files (*.json)|*.json";
-            openFileDialog.Multiselect = true;
 
             if (openFileDialog.ShowDialog() == true)
             {

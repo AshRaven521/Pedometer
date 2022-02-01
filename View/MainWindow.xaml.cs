@@ -23,10 +23,24 @@ namespace Pedometer
     /// </summary>
     public partial class MainWindow : Window
     {
+        private ApplicationViewModel viewModel;
+
         public MainWindow()
         {
             InitializeComponent();
             DataContext = new ApplicationViewModel(new JsonFileParsing(), new DefaultDialogService());
+        }
+
+        private void printDataButton_Click(object sender, RoutedEventArgs e)
+        {
+            viewModel = new ApplicationViewModel(new JsonFileParsing(), new DefaultDialogService());
+            var users = viewModel.CollectData();
+
+            
+
+            usersGrid.ItemsSource = viewModel.CollectData();
+            usersGrid.Columns[0].Header = "Фамилия и Имя";
+            usersGrid.Columns[1].Header = "Шаги";
         }
     }
 }

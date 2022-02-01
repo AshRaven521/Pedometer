@@ -10,15 +10,19 @@ namespace Pedometer.Model
 {
     public class JsonFileParsing : IFileService
     {
-        public List<Person> Open(string fileName)
+        public List<List<Person>> Open(int daysCount)
         {
-            List<Person> people = new List<Person>();
+            List<List<Person>> people = new List<List<Person>>();
             string json = "";
 
-            using(StreamReader files = new StreamReader(fileName))
+            for(int i = 1; i <= daysCount; i++)
             {
-                json = files.ReadToEnd();
-                people = JsonSerializer.Deserialize<List<Person>>(json);
+
+                using(StreamReader files = new StreamReader($"day{i}.json"))
+                {
+                    json = files.ReadToEnd();
+                    people.Add(JsonSerializer.Deserialize<List<Person>>(json));
+                }
             }
 
             return people;

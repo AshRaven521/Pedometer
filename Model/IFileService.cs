@@ -8,7 +8,7 @@ namespace Pedometer.Model
 {
     public interface IFileService
     {
-        List<Person> Open(string fileName);
+        List<List<Person>> Open(int days);
 
     }
 }
