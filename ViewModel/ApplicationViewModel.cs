@@ -15,13 +15,32 @@ namespace Pedometer.ViewModel
     public class ApplicationViewModel : INotifyPropertyChanged
     {
         private Command collectDataCommand;
+        //private Command showDataCommand;
 
         private Person selectedPerson;
 
         private IFileService file;
         private IDialogService dialog;
-        
-        public ObservableCollection<User> Users { get; set; }
+
+        private uint daysForAnalyzing;
+
+        private ObservableCollection<User> users = new ObservableCollection<User>();
+        public ObservableCollection<User> Users
+        {
+            get
+            {
+                return users;
+            }
+            set
+            {
+                if (users == value)
+                {
+                    return;
+                }
+                users = value;
+                OnPropertyChanged(nameof(Users));
+            }
+        }
 
         private ObservableCollection<Person> People { get; set; }
 
@@ -30,16 +49,18 @@ namespace Pedometer.ViewModel
             file = fileService;
             dialog = dialogService;
 
+            daysForAnalyzing = 5;
+
             People = new ObservableCollection<Person>();
 
-            Users = new ObservableCollection<User>();
+            //Users = new ObservableCollection<User>();
         }
 
         public Command CollectDataCommand
         {
             get
             {
-                if(collectDataCommand == null)
+                if (collectDataCommand is null)
                 {
                     return collectDataCommand = new Command(PrintData);
                 }
@@ -50,6 +71,21 @@ namespace Pedometer.ViewModel
             }
         }
 
+        //public Command ShowDataCommand
+        //{
+        //    get
+        //    {
+        //        if (showDataCommand is null)
+        //        {
+        //            return showDataCommand = new Command(CollectData); 
+        //        }
+        //        else
+        //        {
+        //            return showDataCommand;
+        //        }
+        //    }
+        //}
+
 
         private void OpenFile()
         {
@@ -57,7 +93,7 @@ namespace Pedometer.ViewModel
             try
             {
                 //Задаем количество дней, по которым будем проводить анализ количества шагов(кол-во считываемых json файлов)
-                var people = file.Open(5);
+                var people = file.Open(daysForAnalyzing);
 
                     
                 foreach(List<Person> listOfPerson in people)
@@ -65,21 +101,19 @@ namespace Pedometer.ViewModel
                     foreach(Person person in listOfPerson)
                     {
                         People.Add(person);
-
                     }
                 }
             }
             catch (Exception ex)
             {
-                dialog.ShowMessage(ex.Message);
+                dialog.ShowErrorMessage(ex.Message);
             }
 
         }
 
-        public List<User> CollectData()
+        public void CollectData()
         {
-
-            List<User> users = new List<User>();
+            //List<User> users = new List<User>();
             OpenFile();
 
             foreach (Person p in People)
@@ -97,7 +131,32 @@ namespace Pedometer.ViewModel
                 }
             }
 
-            return users;
+            foreach (var user in users)
+            {
+                CalculateSteps(user);
+            }
+
+            //return users;
+        }
+
+        private void CalculateSteps(User user)
+        {
+            //double averageSteps = 0.0;
+            var allUserDays = user.Steps.Select(x => x.Steps);
+            user.AverageSteps = allUserDays.Average();
+            user.BestStepsResult = allUserDays.Max();
+            user.WorstStepsResult = allUserDays.Min();
+
+            //foreach (var step in user.Steps)
+            //{
+            //    allUserSteps += step.Steps;
+            //}
+            //double averageSteps = allUserSteps / daysForAnalyzing;
+        }
+
+        private void FillDataTable()
+        {
+
         }
 
         private void PrintData()
