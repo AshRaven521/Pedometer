@@ -1,28 +1,43 @@
-﻿using System;
+﻿using Pedometer.Entities;
+using Pedometer.Model;
+using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.ComponentModel;
 using System.Linq;
 using System.Runtime.CompilerServices;
-using System.Text;
-using System.Threading.Tasks;
-using Microsoft.Win32;
-using Pedometer.Model;
-using Pedometer.Entities;
+using LiveCharts;
+using LiveCharts.Wpf;
+using LiveCharts.Defaults;
 
 namespace Pedometer.ViewModel
 {
     public class ApplicationViewModel : INotifyPropertyChanged
     {
-        private Command collectDataCommand;
-        //private Command showDataCommand;
-
-        private Person selectedPerson;
-
         private IFileService file;
         private IDialogService dialog;
 
         private uint daysForAnalyzing;
+
+        private ChartValues<ObservablePoint> chartValues = new ChartValues<ObservablePoint>();
+
+        private Command collectDataCommand;
+        public Command CollectDataCommand
+        {
+            get
+            {
+                if (collectDataCommand is null)
+                {
+                    return collectDataCommand = new Command(PrintData);
+                }
+                else
+                {
+                    return collectDataCommand;
+                }
+            }
+        }
+
+        
 
         private ObservableCollection<User> users = new ObservableCollection<User>();
         public ObservableCollection<User> Users
@@ -44,6 +59,47 @@ namespace Pedometer.ViewModel
 
         private ObservableCollection<Person> People { get; set; }
 
+        public SeriesCollection SeriesCollection { get; set; }
+        public List<string> Labels { get; set; }
+        public Func<double, string> YFormatter { get; set; }
+
+        private User selectedUser;
+        public User SelectedUser
+        {
+            get
+            {
+                return selectedUser;
+            }
+            set
+            {
+                if (selectedUser == value)
+                {
+                    return;
+                }
+                SeriesCollection.Clear();
+                chartValues.Clear();
+                selectedUser = value;
+
+                for (int i = 0; i < daysForAnalyzing; i++)
+                {
+                    // Добавляем новую точку, где X - день, Y - кол-во шагов пользователя за этот день
+                    chartValues.Add(new ObservablePoint(i, selectedUser.Steps.ElementAt(i).Steps));
+
+                    Labels.Add($"{i + 1}");
+                }
+
+                SeriesCollection.Add(new LineSeries
+                {
+                    Title = selectedUser.Name,
+                    Values = chartValues
+                });
+                
+                YFormatter = value => value.ToString("C");
+
+                OnPropertyChanged(nameof(SelectedUser));
+            }
+        }
+
         public ApplicationViewModel(IFileService fileService, IDialogService dialogService)
         {
             file = fileService;
@@ -53,52 +109,24 @@ namespace Pedometer.ViewModel
 
             People = new ObservableCollection<Person>();
 
-            //Users = new ObservableCollection<User>();
+            SeriesCollection = new SeriesCollection();
+            Labels = new List<string>();    
         }
-
-        public Command CollectDataCommand
-        {
-            get
-            {
-                if (collectDataCommand is null)
-                {
-                    return collectDataCommand = new Command(PrintData);
-                }
-                else
-                {
-                    return collectDataCommand;
-                }
-            }
-        }
-
-        //public Command ShowDataCommand
-        //{
-        //    get
-        //    {
-        //        if (showDataCommand is null)
-        //        {
-        //            return showDataCommand = new Command(CollectData); 
-        //        }
-        //        else
-        //        {
-        //            return showDataCommand;
-        //        }
-        //    }
-        //}
 
 
         private void OpenFile()
         {
-
             try
             {
+                bool isOpen = dialog.OpenFile();
+                daysForAnalyzing = (uint)dialog.FilePaths.Length;
                 //Задаем количество дней, по которым будем проводить анализ количества шагов(кол-во считываемых json файлов)
-                var people = file.Open(daysForAnalyzing);
+                var people = file.Open(daysForAnalyzing, dialog.FilePaths);
 
-                    
-                foreach(List<Person> listOfPerson in people)
+
+                foreach (List<Person> listOfPerson in people)
                 {
-                    foreach(Person person in listOfPerson)
+                    foreach (Person person in listOfPerson)
                     {
                         People.Add(person);
                     }
@@ -141,22 +169,10 @@ namespace Pedometer.ViewModel
 
         private void CalculateSteps(User user)
         {
-            //double averageSteps = 0.0;
             var allUserDays = user.Steps.Select(x => x.Steps);
             user.AverageSteps = allUserDays.Average();
             user.BestStepsResult = allUserDays.Max();
             user.WorstStepsResult = allUserDays.Min();
-
-            //foreach (var step in user.Steps)
-            //{
-            //    allUserSteps += step.Steps;
-            //}
-            //double averageSteps = allUserSteps / daysForAnalyzing;
-        }
-
-        private void FillDataTable()
-        {
-
         }
 
         private void PrintData()
@@ -167,7 +183,7 @@ namespace Pedometer.ViewModel
 
         public event PropertyChangedEventHandler PropertyChanged;
 
-        public void OnPropertyChanged([CallerMemberName]string propName = "")
+        public void OnPropertyChanged([CallerMemberName] string propName = "")
         {
             PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propName));
         }
