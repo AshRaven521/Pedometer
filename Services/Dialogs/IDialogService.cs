@@ -12,6 +12,6 @@ namespace Pedometer.Model
 
         void ShowErrorMessage(string errMessage);
         bool OpenFile();
-        string FilePath { get; set; }
+        string[] FilePaths { get; set; }
     }
 }
