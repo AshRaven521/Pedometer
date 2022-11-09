@@ -3,37 +3,71 @@
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
-        xmlns:local="clr-namespace:Pedometer" xmlns:viewmodel="clr-namespace:Pedometer.ViewModel" 
+        xmlns:local="clr-namespace:Pedometer" 
+        xmlns:viewmodel="clr-namespace:Pedometer.ViewModel" 
         d:DataContext="{d:DesignInstance Type=viewmodel:ApplicationViewModel}"
         mc:Ignorable="d"
-        Title="Pedometer" Height="400" Width="600" ResizeMode="CanResizeWithGrip" >
+        Title="Pedometer" 
+        Height="400"
+        Width="600"
+        ResizeMode="CanResizeWithGrip" >
     <Grid>
         <Grid.ColumnDefinitions>
-            <ColumnDefinition Width="407*"/>
-            <ColumnDefinition Width="22*"/>
-            <ColumnDefinition Width="71*"/>
+            <!--<ColumnDefinition Width="407*"/>
+            <ColumnDefinition Width="22*"/>-->
+            <!--<ColumnDefinition Width="71*"/>-->
         </Grid.ColumnDefinitions>
 
         <Button Height="20"
-                x:Name="openFileButton" Content="Собрать данные" 
+                x:Name="openFileButton" 
+                Content="Собрать данные" 
                 Command="{Binding CollectDataCommand}" 
-                Margin="18,85,0,0" HorizontalAlignment="Left"
-                VerticalAlignment="Top" Width="115"/>
-        <Button x:Name="printDataButton" 
-                
-                Width="115" Height="20" Content="Вывести данные"
+                Margin="10,10,0,0" 
+                HorizontalAlignment="Left"
+                VerticalAlignment="Top" 
+                Width="115"/>
+        <!--<Button x:Name="printDataButton" 
+                Width="115" Height="20" 
+                Content="Вывести данные"
                 HorizontalAlignment="Left"
                 VerticalAlignment="Top" Margin="18,119,0,0" 
-                Click="printDataButton_Click"/>
-        <DataGrid x:Name="usersGrid" 
-                  AutoGenerateColumns="True" 
-                  Margin="18,156,10,60" >
-            <!--<DataGrid.Columns >
-                <DataGridTextColumn Header="Фамилия и Имя" Width="100" x:Name="nameColumn"/>
-                <DataGridTextColumn Header="Среднее кол-во шагов" Width="140" x:Name="averageResultColumn"/>
-                <DataGridTextColumn Header="Лучший результат" Width="110" x:Name="bestResultColumn"/>
-                <DataGridTextColumn Header="Худший результат" Width="110" x:Name="worstResultColumn"/>
-            </DataGrid.Columns>-->
+                Click="printDataButton_Click"/>-->
+        <DataGrid x:Name="usersGrid"
+                  AutoGenerateColumns="False"
+                  Margin="10,35,45,181" 
+                  ItemsSource="{Binding Users, 
+                    UpdateSourceTrigger=PropertyChanged,
+                    NotifyOnTargetUpdated=True}">
+            <DataGrid.Columns >
+                <DataGridTextColumn Header="Фамилия и Имя" 
+                                    Width="145" 
+                                    x:Name="nameColumn"
+                                    Binding="{Binding Name, 
+                                    NotifyOnTargetUpdated=True,
+                                    UpdateSourceTrigger=PropertyChanged}"
+                                    />
+                <DataGridTextColumn Header="Среднее кол-во шагов" 
+                                    Width="140" 
+                                    x:Name="averageResultColumn"
+                                    Binding="{Binding AverageSteps, 
+                                    NotifyOnTargetUpdated=True,
+                                    UpdateSourceTrigger=PropertyChanged}"
+                                    />
+                <DataGridTextColumn Header="Лучший результат" 
+                                    Width="110" 
+                                    x:Name="bestResultColumn"
+                                    Binding="{Binding BestStepsResult, 
+                                    NotifyOnTargetUpdated=True,
+                                    UpdateSourceTrigger=PropertyChanged}"
+                                    />
+                <DataGridTextColumn Header="Худший результат"
+                                    Width="110" 
+                                    x:Name="worstResultColumn"
+                                    Binding="{Binding WorstStepsResult, 
+                                    NotifyOnTargetUpdated=True,
+                                    UpdateSourceTrigger=PropertyChanged}"
+                                    />
+            </DataGrid.Columns>
         </DataGrid>
     </Grid>
 </Window>
