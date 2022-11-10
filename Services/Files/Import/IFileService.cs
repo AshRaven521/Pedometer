@@ -1,5 +1,4 @@
-﻿using Pedometer.Entities;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 
 namespace Pedometer.Model
 {
