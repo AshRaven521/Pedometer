@@ -1,5 +1,4 @@
 ﻿using Pedometer.Entities;
-using System;
 using System.Collections.Generic;
 using System.Xml.Serialization;
 
@@ -14,9 +13,10 @@ namespace Pedometer
         public List<DaySteps> DaysSteps { get; }
         public int Steps { get; set; }
 
-        public double AverageSteps { get; set; }
+        public int AverageSteps { get; set; }
         public int BestStepsResult { get; set; }
         public int WorstStepsResult { get; set; }
+        public bool IsLight { get; set; }
         public Person(string user)
         {
             User = user;
@@ -24,6 +24,7 @@ namespace Pedometer
             AverageSteps = 0;
             BestStepsResult = 0;
             WorstStepsResult = 0;
+            IsLight = false;
         }
 
         // Конструктор без параметров для XML сериализации
