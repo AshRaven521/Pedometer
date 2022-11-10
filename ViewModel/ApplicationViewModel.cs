@@ -1,15 +1,16 @@
-﻿using Pedometer.Entities;
+﻿using LiveCharts;
+using LiveCharts.Defaults;
+using LiveCharts.Wpf;
+using Pedometer.Entities;
 using Pedometer.Model;
+using Pedometer.Services.Files.Export;
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.ComponentModel;
 using System.Linq;
 using System.Runtime.CompilerServices;
-using LiveCharts;
-using LiveCharts.Wpf;
-using LiveCharts.Defaults;
-using Pedometer.Services.Files.Export;
+using System.Windows.Media;
 
 namespace Pedometer.ViewModel
 {
@@ -30,7 +31,7 @@ namespace Pedometer.ViewModel
             {
                 if (collectDataCommand is null)
                 {
-                    return collectDataCommand = new Command(PrintData);
+                    return collectDataCommand = new Command(ShowData);
                 }
                 else
                 {
@@ -54,8 +55,6 @@ namespace Pedometer.ViewModel
                 }
             }
         }
-
-
         private ObservableCollection<Person> people { get; set; } = new ObservableCollection<Person>();
         public ObservableCollection<Person> People
         {
@@ -108,7 +107,7 @@ namespace Pedometer.ViewModel
             daysForAnalyzing = 5;
 
             SeriesCollection = new SeriesCollection();
-            Labels = new List<string>();    
+            Labels = new List<string>();
         }
 
 
@@ -133,15 +132,13 @@ namespace Pedometer.ViewModel
                             p.DaysSteps.Add(new DaySteps(person.Steps));
                             p.Rank = person.Rank;
                             p.Status = person.Status;
-                            //p.Steps = person.DaysSteps.Select(x => x.Steps).Sum();
+                            p.IsLight = false;
                             people.Add(p);
                         }
                         else
                         {
                             var p = people.FirstOrDefault(x => x.User == person.User);
                             p.DaysSteps.Add(new DaySteps(person.Steps));
-                            //var test = person.DaysSteps.Select(x => x.Steps).Sum();
-                            //p.Steps = person.DaysSteps.Select(x => x.Steps).Sum();
                         }
                     }
                 }
@@ -155,47 +152,33 @@ namespace Pedometer.ViewModel
 
         public void CollectData()
         {
-            //List<User> users = new List<User>();
             FillPeopleCollection();
-
-            //foreach (Person p in people)
-            //{
-            //    if (!users.Any(x => x.Name == p.User))
-            //    {
-            //        var user = new User(p.User);
-            //        user.DaysSteps.Add(new DaySteps(p.Steps));
-            //        users.Add(user);
-            //    }
-            //    else
-            //    {
-            //        var user = users.FirstOrDefault(x => x.Name == p.User);
-            //        user.DaysSteps.Add(new DaySteps(p.Steps));
-            //    }
-            //}
 
             foreach (var person in people)
             {
-                CalculateSteps(person);
+                CalculateProperties(person);
             }
-
-            //return users;
         }
 
-        private void CalculateSteps(Person person)
+        private void CalculateProperties(Person person)
         {
             var allPersonDays = person.DaysSteps.Select(x => x.Steps);
-            person.AverageSteps = allPersonDays.Average();
+            person.AverageSteps = Convert.ToInt32(allPersonDays.Average());
             person.BestStepsResult = allPersonDays.Max();
             person.WorstStepsResult = allPersonDays.Min();
             person.Steps = allPersonDays.Sum();
+
+            if (person.BestStepsResult > person.AverageSteps * 1.2 || person.WorstStepsResult < person.AverageSteps * 0.8)
+            {
+                person.IsLight = true;
+            }
         }
 
-        private void PrintData()
+        private void ShowData()
         {
             CollectData();
             dialog.ShowMessage("Данные успешно собраны!");
         }
-
         private void ExportData()
         {
             bool isSave = dialog.SaveFile();
@@ -210,20 +193,23 @@ namespace Pedometer.ViewModel
         {
             SeriesCollection.Clear();
             chartValues.Clear();
-            
+            Labels.Clear();
 
             for (int i = 0; i < daysForAnalyzing; i++)
             {
-                // Добавляем новую точку, где X - день, Y - кол-во шагов пользователя за этот день
-                chartValues.Add(new ObservablePoint(i, selectedPerson.DaysSteps.ElementAt(i).Steps));
-
-                Labels.Add($"{i + 1}");
+                if (i < selectedPerson.DaysSteps.Count)
+                {
+                    // Добавляем новую точку, где X - день, Y - кол-во шагов пользователя за этот день
+                    chartValues.Add(new ObservablePoint(i, selectedPerson.DaysSteps.ElementAt(i).Steps));
+                    Labels.Add($"{i + 1}");
+                }
             }
 
             SeriesCollection.Add(new LineSeries
             {
                 Title = selectedPerson.User,
-                Values = chartValues
+                Values = chartValues,
+                Foreground = Brushes.Black
             });
 
             YFormatter = value => value.ToString("C");
