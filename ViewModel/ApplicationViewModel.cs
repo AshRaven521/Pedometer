@@ -9,6 +9,7 @@ using System.Runtime.CompilerServices;
 using LiveCharts;
 using LiveCharts.Wpf;
 using LiveCharts.Defaults;
+using Pedometer.Services.Files.Export;
 
 namespace Pedometer.ViewModel
 {
@@ -16,6 +17,7 @@ namespace Pedometer.ViewModel
     {
         private IFileService file;
         private IDialogService dialog;
+        private IFileExportService fileExport;
 
         private uint daysForAnalyzing;
 
@@ -37,98 +39,110 @@ namespace Pedometer.ViewModel
             }
         }
 
-        
-
-        private ObservableCollection<User> users = new ObservableCollection<User>();
-        public ObservableCollection<User> Users
+        private Command exportDataCommand;
+        public Command ExportDataCommand
         {
             get
             {
-                return users;
-            }
-            set
-            {
-                if (users == value)
+                if (exportDataCommand is null)
                 {
-                    return;
+                    return exportDataCommand = new Command(ExportData);
                 }
-                users = value;
-                OnPropertyChanged(nameof(Users));
+                else
+                {
+                    return exportDataCommand;
+                }
             }
         }
 
-        private ObservableCollection<Person> People { get; set; }
+
+        private ObservableCollection<Person> people { get; set; } = new ObservableCollection<Person>();
+        public ObservableCollection<Person> People
+        {
+            get
+            {
+                return people;
+            }
+            set
+            {
+                if (people == value)
+                {
+                    return;
+                }
+                people = value;
+                OnPropertyChanged(nameof(People));
+            }
+        }
 
         public SeriesCollection SeriesCollection { get; set; }
         public List<string> Labels { get; set; }
         public Func<double, string> YFormatter { get; set; }
 
-        private User selectedUser;
-        public User SelectedUser
+        private Person selectedPerson;
+        public Person SelectedPerson
         {
             get
             {
-                return selectedUser;
+                return selectedPerson;
             }
             set
             {
-                if (selectedUser == value)
+                if (selectedPerson == value)
                 {
                     return;
                 }
-                SeriesCollection.Clear();
-                chartValues.Clear();
-                selectedUser = value;
+                selectedPerson = value;
 
-                for (int i = 0; i < daysForAnalyzing; i++)
-                {
-                    // Добавляем новую точку, где X - день, Y - кол-во шагов пользователя за этот день
-                    chartValues.Add(new ObservablePoint(i, selectedUser.Steps.ElementAt(i).Steps));
+                DrawChart();
 
-                    Labels.Add($"{i + 1}");
-                }
-
-                SeriesCollection.Add(new LineSeries
-                {
-                    Title = selectedUser.Name,
-                    Values = chartValues
-                });
-                
-                YFormatter = value => value.ToString("C");
-
-                OnPropertyChanged(nameof(SelectedUser));
+                OnPropertyChanged(nameof(SelectedPerson));
             }
         }
 
-        public ApplicationViewModel(IFileService fileService, IDialogService dialogService)
+        public ApplicationViewModel(IFileService fileService, IDialogService dialogService, IFileExportService fileExportService)
         {
             file = fileService;
             dialog = dialogService;
+            fileExport = fileExportService;
 
             daysForAnalyzing = 5;
-
-            People = new ObservableCollection<Person>();
 
             SeriesCollection = new SeriesCollection();
             Labels = new List<string>();    
         }
 
 
-        private void OpenFile()
+        private void FillPeopleCollection()
         {
             try
             {
                 bool isOpen = dialog.OpenFile();
                 daysForAnalyzing = (uint)dialog.FilePaths.Length;
                 //Задаем количество дней, по которым будем проводить анализ количества шагов(кол-во считываемых json файлов)
-                var people = file.Open(daysForAnalyzing, dialog.FilePaths);
+                var peopleDays = file.Open(daysForAnalyzing, dialog.FilePaths);
 
 
-                foreach (List<Person> listOfPerson in people)
+                foreach (var day in peopleDays)
                 {
-                    foreach (Person person in listOfPerson)
+                    foreach (var person in day)
                     {
-                        People.Add(person);
+                        // Обрабатываем добавление людей в ObservableCollection, чтобы они не повторялись
+                        if (!people.Any(x => x.User == person.User))
+                        {
+                            var p = new Person(person.User);
+                            p.DaysSteps.Add(new DaySteps(person.Steps));
+                            p.Rank = person.Rank;
+                            p.Status = person.Status;
+                            //p.Steps = person.DaysSteps.Select(x => x.Steps).Sum();
+                            people.Add(p);
+                        }
+                        else
+                        {
+                            var p = people.FirstOrDefault(x => x.User == person.User);
+                            p.DaysSteps.Add(new DaySteps(person.Steps));
+                            //var test = person.DaysSteps.Select(x => x.Steps).Sum();
+                            //p.Steps = person.DaysSteps.Select(x => x.Steps).Sum();
+                        }
                     }
                 }
             }
@@ -142,43 +156,77 @@ namespace Pedometer.ViewModel
         public void CollectData()
         {
             //List<User> users = new List<User>();
-            OpenFile();
+            FillPeopleCollection();
 
-            foreach (Person p in People)
-            {
-                if (!users.Any(x => x.Name == p.User))
-                {
-                    var user = new User(p.User);
-                    user.Steps.Add(new DaySteps(p.Steps));
-                    users.Add(user);
-                }
-                else
-                {
-                    var user = users.FirstOrDefault(x => x.Name == p.User);
-                    user.Steps.Add(new DaySteps(p.Steps));
-                }
-            }
+            //foreach (Person p in people)
+            //{
+            //    if (!users.Any(x => x.Name == p.User))
+            //    {
+            //        var user = new User(p.User);
+            //        user.DaysSteps.Add(new DaySteps(p.Steps));
+            //        users.Add(user);
+            //    }
+            //    else
+            //    {
+            //        var user = users.FirstOrDefault(x => x.Name == p.User);
+            //        user.DaysSteps.Add(new DaySteps(p.Steps));
+            //    }
+            //}
 
-            foreach (var user in users)
+            foreach (var person in people)
             {
-                CalculateSteps(user);
+                CalculateSteps(person);
             }
 
             //return users;
         }
 
-        private void CalculateSteps(User user)
+        private void CalculateSteps(Person person)
         {
-            var allUserDays = user.Steps.Select(x => x.Steps);
-            user.AverageSteps = allUserDays.Average();
-            user.BestStepsResult = allUserDays.Max();
-            user.WorstStepsResult = allUserDays.Min();
+            var allPersonDays = person.DaysSteps.Select(x => x.Steps);
+            person.AverageSteps = allPersonDays.Average();
+            person.BestStepsResult = allPersonDays.Max();
+            person.WorstStepsResult = allPersonDays.Min();
+            person.Steps = allPersonDays.Sum();
         }
 
         private void PrintData()
         {
             CollectData();
             dialog.ShowMessage("Данные успешно собраны!");
+        }
+
+        private void ExportData()
+        {
+            bool isSave = dialog.SaveFile();
+
+            // В массиве FilePaths будет только 1 элемент, т.к. при сохранении отключена возможность выбора нескольких файлов
+            string filePath = dialog.FilePaths[0];
+
+            fileExport.SaveToFile(filePath, selectedPerson);
+        }
+
+        private void DrawChart()
+        {
+            SeriesCollection.Clear();
+            chartValues.Clear();
+            
+
+            for (int i = 0; i < daysForAnalyzing; i++)
+            {
+                // Добавляем новую точку, где X - день, Y - кол-во шагов пользователя за этот день
+                chartValues.Add(new ObservablePoint(i, selectedPerson.DaysSteps.ElementAt(i).Steps));
+
+                Labels.Add($"{i + 1}");
+            }
+
+            SeriesCollection.Add(new LineSeries
+            {
+                Title = selectedPerson.User,
+                Values = chartValues
+            });
+
+            YFormatter = value => value.ToString("C");
         }
 
         public event PropertyChangedEventHandler PropertyChanged;
