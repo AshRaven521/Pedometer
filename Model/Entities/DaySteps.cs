@@ -5,7 +5,6 @@ namespace Pedometer.Entities
     [XmlRoot("Person")]
     public class DaySteps
     {
-        //[XmlAttribute(AttributeName="Steps")]
         [XmlText]
         public int Steps { get; }
         public DaySteps(int steps)
