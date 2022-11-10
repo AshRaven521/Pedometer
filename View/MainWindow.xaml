@@ -13,7 +13,10 @@
         Height="470"
         Width="600"
         ResizeMode="NoResize" 
-        Icon="/View/main.png" >
+        Icon="/View/main.png"
+        FontFamily="Times New Roman"
+        FontSize="13"
+        Background="#5CB2F9">
     <Grid>
         <Grid.ColumnDefinitions>
 
@@ -29,6 +32,17 @@
                   SelectedItem="{Binding SelectedPerson, 
                                 Mode=TwoWay}"
                   IsReadOnly="True">
+            <DataGrid.RowStyle>
+                <Style TargetType="DataGridRow">
+                    <Style.Triggers>
+                        <DataTrigger Binding="{Binding IsLight}"
+                                     Value="true">
+                            <Setter Property="Background"
+                                    Value="#0E72C4"/>
+                        </DataTrigger>
+                    </Style.Triggers>
+                </Style>
+            </DataGrid.RowStyle>
             <DataGrid.Columns >
                 <DataGridTextColumn Header="Фамилия и Имя" 
                                     Width="145" 
@@ -64,19 +78,20 @@
         <lvc:CartesianChart 
             Series="{Binding SeriesCollection}" 
             LegendLocation="Right" 
-            Margin="10,283,45,30" >
+            Margin="10,283,45,30"
+            Background="White">
             <lvc:CartesianChart.AxisY>
                 <lvc:Axis 
                     Title="Шаги" 
                     LabelFormatter="{Binding YFormatter}"
-                    >
+                    Foreground="Black">
                 </lvc:Axis>
             </lvc:CartesianChart.AxisY>
             <lvc:CartesianChart.AxisX>
                 <lvc:Axis 
                     Title="Дни" 
                     Labels="{Binding Labels}"
-                    >
+                    Foreground="Black">
                 </lvc:Axis>
             </lvc:CartesianChart.AxisX>
         </lvc:CartesianChart>
