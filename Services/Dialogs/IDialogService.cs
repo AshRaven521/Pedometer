@@ -1,10 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-
-namespace Pedometer.Model
+﻿namespace Pedometer.Model
 {
     public interface IDialogService
     {
@@ -12,6 +6,7 @@ namespace Pedometer.Model
 
         void ShowErrorMessage(string errMessage);
         bool OpenFile();
+        bool SaveFile();
         string[] FilePaths { get; set; }
     }
 }

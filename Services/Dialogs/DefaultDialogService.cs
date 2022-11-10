@@ -25,6 +25,23 @@ namespace Pedometer.Model
             return false;
         }
 
+        public bool SaveFile()
+        {
+            SaveFileDialog saveFileDialog = new SaveFileDialog();
+
+            saveFileDialog.InitialDirectory = "c:\\";
+            saveFileDialog.Filter = "Json files (*.json)|*.json|XML files (*.xml)|*.xml|CSV files (*.csv)|*.csv";
+            saveFileDialog.Title = "Выберите файл для экспорта данных о пользователе";
+
+            if (saveFileDialog.ShowDialog() == true)
+            {
+                FilePaths = saveFileDialog.FileNames;
+                return true;
+            }
+
+            return false;
+        }
+
         public void ShowMessage(string message)
         {
             MessageBox.Show(message, "Информация", MessageBoxButton.OK, MessageBoxImage.Information);
