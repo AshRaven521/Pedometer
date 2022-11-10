@@ -10,40 +10,30 @@
         
         mc:Ignorable="d"
         Title="Pedometer" 
-        Height="400"
+        Height="470"
         Width="600"
-        ResizeMode="NoResize" >
+        ResizeMode="NoResize" 
+        Icon="/View/main.png" >
     <Grid>
         <Grid.ColumnDefinitions>
 
         </Grid.ColumnDefinitions>
 
 
-        <StackPanel Grid.ColumnSpan="4">
-            <Button Height="20"
-                x:Name="openFileButton" 
-                Content="Собрать данные" 
-                Command="{Binding CollectDataCommand}" 
-                Margin="10,10,0,0" 
-                HorizontalAlignment="Left"
-                VerticalAlignment="Top" 
-                Width="115"/>
-
-        </StackPanel>
         <DataGrid x:Name="usersGrid"
                   AutoGenerateColumns="False"
-                  Margin="10,35,45,181" 
-                  ItemsSource="{Binding Users, 
+                  Margin="10,48,45,219" 
+                  ItemsSource="{Binding People, 
                     UpdateSourceTrigger=PropertyChanged,
                     NotifyOnTargetUpdated=True}"
-                  SelectedItem="{Binding SelectedUser, 
+                  SelectedItem="{Binding SelectedPerson, 
                                 Mode=TwoWay}"
                   IsReadOnly="True">
             <DataGrid.Columns >
                 <DataGridTextColumn Header="Фамилия и Имя" 
                                     Width="145" 
                                     x:Name="nameColumn"
-                                    Binding="{Binding Name, 
+                                    Binding="{Binding User, 
                                     NotifyOnTargetUpdated=True,
                                     UpdateSourceTrigger=PropertyChanged}"
                                     />
@@ -74,7 +64,7 @@
         <lvc:CartesianChart 
             Series="{Binding SeriesCollection}" 
             LegendLocation="Right" 
-            Margin="10,220,45,10" >
+            Margin="10,283,45,30" >
             <lvc:CartesianChart.AxisY>
                 <lvc:Axis 
                     Title="Шаги" 
@@ -90,6 +80,20 @@
                 </lvc:Axis>
             </lvc:CartesianChart.AxisX>
         </lvc:CartesianChart>
+        <Button 
+            Content="Собрать Данные" 
+            x:Name="openFileButton"
+            HorizontalAlignment="Left" 
+            Margin="10,10,0,0" 
+            VerticalAlignment="Top" 
+            Width="110"
+            Command="{Binding CollectDataCommand}"/>
+        <Button 
+            Content="Экспортировать данные выбранного пользователя" 
+            HorizontalAlignment="Left" 
+            Margin="139,10,0,0" 
+            VerticalAlignment="Top"
+            Command="{Binding ExportDataCommand}"/>
 
     </Grid>
 </Window>
