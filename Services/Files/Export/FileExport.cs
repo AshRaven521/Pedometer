@@ -5,10 +5,10 @@ using System.Collections.Generic;
 using System.Globalization;
 using System.IO;
 using System.Text;
-using System.Text.Json;
 using System.Text.Encodings.Web;
-using System.Xml.Serialization;
+using System.Text.Json;
 using System.Text.Unicode;
+using System.Xml.Serialization;
 
 namespace Pedometer.Services.Files.Export
 {
@@ -99,25 +99,8 @@ namespace Pedometer.Services.Files.Export
                 return;
             }
 
-
-            var headersList = new List<string>();
-            headersList.Add("Пользователь");
-            headersList.Add("Ранк");
-            headersList.Add("Статус");
-            headersList.Add("Средние количество шагов за весь период");
-            headersList.Add("Лучший результат по шагам");
-            headersList.Add("Худший результат по шагам");
-
-            string headers = string.Join(", ", headersList);
-
-            //string dataLine = string.Join(", ", person.GetType().GetProperties().Select(p => p.GetValue(person)));
-
-            var dataList = new List<string>();
-            dataList.Add(headers);
-            //dataList.Add(dataLine);
-
-            var personList = new List<Person>();
-            personList.Add(person);
+            var peopleList = new List<Person>();
+            peopleList.Add(person);
 
             try
             {
@@ -125,7 +108,7 @@ namespace Pedometer.Services.Files.Export
                 {
                     using (var csvWriter = new CsvWriter(streamWriter, CultureInfo.CurrentCulture))
                     {
-                        csvWriter.WriteRecords(personList);
+                        csvWriter.WriteRecords(peopleList);
                     }
                 }
 
